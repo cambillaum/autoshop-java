@@ -25,6 +25,11 @@ public class Car implements Vehicle {
     }
 
     @Override
+    public <T> T accept(VehicleVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (o == null) {
             return false;

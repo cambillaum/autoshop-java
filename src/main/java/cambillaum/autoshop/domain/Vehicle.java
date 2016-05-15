@@ -9,4 +9,6 @@ public interface Vehicle {
     Double dollarPrice();
     Year modelYear();
 
+    <T> T accept(VehicleVisitor<T> visitor);
+
 }

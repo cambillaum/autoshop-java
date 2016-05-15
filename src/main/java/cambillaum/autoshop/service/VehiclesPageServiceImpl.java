@@ -1,9 +1,6 @@
 package cambillaum.autoshop.service;
 
-import cambillaum.autoshop.domain.Car;
-import cambillaum.autoshop.domain.CarType;
-import cambillaum.autoshop.domain.Motorcycle;
-import cambillaum.autoshop.domain.Vehicle;
+import cambillaum.autoshop.domain.*;
 import cambillaum.autoshop.dto.*;
 import cambillaum.autoshop.store.VehiclesStore;
 
@@ -39,22 +36,29 @@ public class VehiclesPageServiceImpl implements VehiclesPageService {
 
     private List<VehicleCategoryWithNumberDTO> extractNumberOfVehiclesByCategory(Set<Vehicle> vehicles) {
         Map<String, List<Vehicle>> categorizedVehicles = vehicles.stream().collect(Collectors.groupingBy(vehicle -> {
-            if(vehicle instanceof Car) {
-                Car car = (Car) vehicle;
-                if(car.type().equals(CarType.SEDAN)) {
-                    return "Sedan";
-                } else if(car.type().equals(CarType.SUV)) {
-                    return "SUV";
-                } else if(car.type().equals(CarType.TRUCK)) {
-                    return "Truck";
-                } else {
-                    throw new IllegalArgumentException("Unsupported carType " + car.type());
+            return vehicle.accept(new VehicleVisitor<String>() {
+                @Override
+                public String visit(Car car) {
+                    return car.type().accept(new CarTypeVisitor<String>() {
+                        @Override
+                        public String visitSedan() {
+                            return "Sedan";
+                        }
+                        @Override
+                        public String visitSuv() {
+                            return "SUV";
+                        }
+                        @Override
+                        public String visitTruck() {
+                            return "Truck";
+                        }
+                    });
                 }
-            } else if(vehicle instanceof Motorcycle) {
-                return "Motorcycle";
-            } else {
-                throw new IllegalArgumentException("Unsupported vehicle type " + vehicle.getClass());
-            }
+                @Override
+                public String visit(Motorcycle motorcycle) {
+                    return "Motorcycle";
+                }
+            });
         }));
 
         List<VehicleCategoryWithNumberDTO> categoriesWithNumbers = categorizedVehicles.entrySet().stream().map(entry -> {
@@ -90,15 +94,16 @@ public class VehiclesPageServiceImpl implements VehiclesPageService {
 
     private List<VehicleDTO> transformToDTOs(List<Vehicle> vehicles) {
         return vehicles.stream().map(vehicle -> {
-            if(vehicle instanceof Car) {
-                Car car = (Car) vehicle;
-                return new CarDTO(car.id(), car.name(), car.dollarPrice(), car.modelYear().getValue(), car.type().name(), car.doorsNumber());
-            } else if(vehicle instanceof Motorcycle) {
-                Motorcycle motorcycle = (Motorcycle) vehicle;
-                return new MotorcycleDTO(motorcycle.id(), motorcycle.name(), motorcycle.dollarPrice(), motorcycle.modelYear().getValue(), motorcycle.hasSidecar());
-            } else {
-                throw new IllegalArgumentException("Unsupported vehicle type " + vehicle.getClass());
-            }
+            return vehicle.accept(new VehicleVisitor<VehicleDTO>() {
+                @Override
+                public VehicleDTO visit(Car car) {
+                    return new CarDTO(car.id(), car.name(), car.dollarPrice(), car.modelYear().getValue(), car.type().name(), car.doorsNumber());
+                }
+                @Override
+                public VehicleDTO visit(Motorcycle motorcycle) {
+                    return new MotorcycleDTO(motorcycle.id(), motorcycle.name(), motorcycle.dollarPrice(), motorcycle.modelYear().getValue(), motorcycle.hasSidecar());
+                }
+            });
         }).collect(Collectors.toList());
     }
 

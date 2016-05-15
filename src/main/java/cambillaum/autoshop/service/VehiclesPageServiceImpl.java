@@ -47,12 +47,14 @@ public class VehiclesPageServiceImpl implements VehiclesPageService {
                     return "SUV";
                 } else if(car.type().equals(CarType.TRUCK)) {
                     return "Truck";
+                } else {
+                    throw new IllegalArgumentException("Unsupported carType " + car.type());
                 }
             } else if(vehicle instanceof Motorcycle) {
                 return "Motorcycle";
+            } else {
+                throw new IllegalArgumentException("Unsupported vehicle type " + vehicle.getClass());
             }
-
-            return "";
         }));
 
         List<VehicleCategoryWithNumberDTO> categoriesWithNumbers = categorizedVehicles.entrySet().stream().map(entry -> {
@@ -94,9 +96,9 @@ public class VehiclesPageServiceImpl implements VehiclesPageService {
             } else if(vehicle instanceof Motorcycle) {
                 Motorcycle motorcycle = (Motorcycle) vehicle;
                 return new MotorcycleDTO(motorcycle.id(), motorcycle.name(), motorcycle.dollarPrice(), motorcycle.modelYear().getValue(), motorcycle.hasSidecar());
+            } else {
+                throw new IllegalArgumentException("Unsupported vehicle type " + vehicle.getClass());
             }
-
-            return null;
         }).collect(Collectors.toList());
     }
 
